@@ -66,7 +66,7 @@ class SseService {
                 println("Client disconnected: $merchantNo")
             }
         }
-        delay(1000)
+        delay(10000)
     }
 
     suspend fun sendMessage(clientId: String, message: String?) {
