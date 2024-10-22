@@ -49,7 +49,7 @@ class SseService {
                         .data("Heartbeat")
                         .build()
                     flow.emit(heartbeat)
-                    delay(3000)
+                    delay(30000)
                 println("Heartbeat sent to client: $merchantNo")
                 }
             }
