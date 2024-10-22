@@ -32,7 +32,7 @@ class SseService {
         val flow = MutableSharedFlow<ServerSentEvent<String>>(replay = 0, extraBufferCapacity = 1)
         val scope = ServerSentEventCoroutineScope(Dispatchers.IO + SupervisorJob(), flow)
 
-        disconnect(merchantNo)
+//        disconnect(merchantNo)
 
         clients[merchantNo] = scope
 
