@@ -59,7 +59,13 @@ class SseService {
     }
 
     private suspend fun SseService.disconnect(merchantNo: String) {
-        sendMessage(merchantNo, "close")
+        val broadcastMessage = ServerSentEvent.builder<String>()
+            .id(UUID.randomUUID().toString())
+            .event("message")
+            .data("close")
+            .comment(merchantNo)
+            .build()
+        clients.get(merchantNo)?.mutableSharedFlow?.emit(broadcastMessage)
         clients.remove(merchantNo)?.let { oldScope ->
             oldScope.cancel()
             oldScope.mutableSharedFlow.onCompletion {
