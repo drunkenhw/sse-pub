@@ -15,6 +15,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.ConcurrentSkipListMap
 import kotlin.coroutines.CoroutineContext
@@ -50,7 +51,6 @@ class SseService {
                         .build()
                     flow.emit(heartbeat)
                     delay(30000)
-                println("Heartbeat sent to client: $merchantNo")
                 }
             }
         }.takeWhile {
@@ -87,6 +87,46 @@ class SseService {
             launch {
                 clients.forEach { (id, client) ->
                     try {
+                        client.mutableSharedFlow.emit(broadcastMessage)
+                    } catch (ex: Exception) {
+                        println("Failed to send message to client: $id", ex)
+                    }
+                }
+            }
+        }
+    }
+
+    suspend fun calc() {
+        coroutineScope {
+            launch {
+                clients.forEach { (id, client) ->
+                    try {
+                        val broadcastMessage = ServerSentEvent.builder<String>()
+                            .id(UUID.randomUUID().toString())
+                            .event("calc")
+                            .data(LocalDateTime.now().toString())
+                            .comment(UUID.randomUUID().toString())
+                            .build()
+                        client.mutableSharedFlow.emit(broadcastMessage)
+                    } catch (ex: Exception) {
+                        println("Failed to send message to client: $id", ex)
+                    }
+                }
+            }
+        }
+    }
+
+    suspend fun callback() {
+        coroutineScope {
+            launch {
+                clients.forEach { (id, client) ->
+                    try {
+                        val broadcastMessage = ServerSentEvent.builder<String>()
+                            .id(UUID.randomUUID().toString())
+                            .event("callback")
+                            .data("callback")
+                            .comment(UUID.randomUUID().toString())
+                            .build()
                         client.mutableSharedFlow.emit(broadcastMessage)
                     } catch (ex: Exception) {
                         println("Failed to send message to client: $id", ex)
