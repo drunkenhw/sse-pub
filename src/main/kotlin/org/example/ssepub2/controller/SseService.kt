@@ -5,7 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onCompletion
@@ -32,8 +31,6 @@ class SseService {
         val flow = MutableSharedFlow<ServerSentEvent<String>>(replay = 0, extraBufferCapacity = 1)
         val scope = ServerSentEventCoroutineScope(Dispatchers.IO + SupervisorJob(), flow)
 
-//        disconnect(merchantNo)
-
         clients[merchantNo] = scope
 
         return flow.onCompletion {
@@ -44,35 +41,11 @@ class SseService {
         }.onStart {
             scope.launch {
                 while (isActive) {
-                    val heartbeat = ServerSentEvent.builder<String>()
-                        .id(UUID.randomUUID().toString())
-                        .event("heartbeat")
-                        .data("Heartbeat")
-                        .build()
-                    flow.emit(heartbeat)
-                    delay(30000)
                 }
             }
         }.takeWhile {
             (it.event() == "close" || it.data() == "close").not()
         }
-    }
-
-    private suspend fun SseService.disconnect(merchantNo: String) {
-        val broadcastMessage = ServerSentEvent.builder<String>()
-            .id(UUID.randomUUID().toString())
-            .event("message")
-            .data("close")
-            .comment(merchantNo)
-            .build()
-        clients.get(merchantNo)?.mutableSharedFlow?.emit(broadcastMessage)
-        clients.remove(merchantNo)?.let { oldScope ->
-            oldScope.cancel()
-            oldScope.mutableSharedFlow.onCompletion {
-                println("Client disconnected: $merchantNo")
-            }
-        }
-        delay(10000)
     }
 
     suspend fun sendMessage(clientId: String, message: String?) {
