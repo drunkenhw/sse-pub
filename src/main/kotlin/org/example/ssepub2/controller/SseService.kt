@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onCompletion
@@ -41,6 +42,13 @@ class SseService {
         }.onStart {
             scope.launch {
                 while (isActive) {
+                    val heartbeat = ServerSentEvent.builder<String>()
+                        .id(UUID.randomUUID().toString())
+                        .event("heartbeat")
+                        .data("Heartbeat")
+                        .build()
+                    flow.emit(heartbeat)
+                    delay(30000)
                 }
             }
         }.takeWhile {
