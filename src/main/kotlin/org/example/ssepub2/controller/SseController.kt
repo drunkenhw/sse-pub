@@ -48,6 +48,11 @@ class SseController(
     suspend fun result(): Result {
         return Result(list)
     }
+
+    @GetMapping("clear")
+    suspend fun clear() {
+        list.clear()
+    }
 }
 
 data class Result(
